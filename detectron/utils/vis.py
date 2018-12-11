@@ -202,7 +202,7 @@ def vis_keypoints(img, kps, kp_thresh=2, alpha=0.7):
 
 def vis_one_image_opencv(
         im, boxes, segms=None, keypoints=None, thresh=0.9, kp_thresh=2,
-        show_box=False, dataset=None, show_class=False):
+        show_box=False, dataset=None, show_class=False, hidex_indexes=False, indexes_shown=None):
     """Constructs a numpy array with the detections visualized."""
 
     if isinstance(boxes, list):
@@ -222,30 +222,37 @@ def vis_one_image_opencv(
     sorted_inds = np.argsort(-areas)
 
     for i in sorted_inds:
+
         bbox = boxes[i, :4]
         score = boxes[i, -1]
         if score < thresh:
             continue
 
-        # show box (off by default)
-        if show_box:
-            im = vis_bbox(
-                im, (bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]))
+        index_show = True
 
-        # show class (off by default)
-        if show_class:
-            class_str = get_class_string(classes[i], score, dataset)
-            im = vis_class(im, (bbox[0], bbox[1] - 2), class_str)
+        if hidex_indexes:
+            if not (classes[i] in indexes_shown):
+                index_show = False
 
-        # show mask
-        if segms is not None and len(segms) > i:
-            color_mask = color_list[mask_color_id % len(color_list), 0:3]
-            mask_color_id += 1
-            im = vis_mask(im, masks[..., i], color_mask)
-
-        # show keypoints
-        if keypoints is not None and len(keypoints) > i:
-            im = vis_keypoints(im, keypoints[i], kp_thresh)
+        if index_show :
+            # show box (off by default)
+            if show_box:
+                im = vis_bbox(
+                    im, (bbox[0], bbox[1], bbox[2] - bbox[0], bbox[3] - bbox[1]))
+            # show class (off by default)
+            if show_class:
+                class_str = get_class_string(classes[i], score, dataset)
+                im = vis_class(im, (bbox[0], bbox[1] - 2), class_str)
+    
+            # show mask
+            if segms is not None and len(segms) > i:
+                color_mask = color_list[mask_color_id % len(color_list), 0:3]
+                mask_color_id += 1
+                im = vis_mask(im, masks[..., i], color_mask)
+    
+            # show keypoints
+            if keypoints is not None and len(keypoints) > i:
+                im = vis_keypoints(im, keypoints[i], kp_thresh)
 
     return im
 
